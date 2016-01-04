@@ -10,6 +10,7 @@
 __sets = {}
 
 import datasets.pascal_voc
+import datasets.car_ds
 import numpy as np
 
 def _selective_search_IJCV_top_k(split, year, top_k):
@@ -20,6 +21,12 @@ def _selective_search_IJCV_top_k(split, year, top_k):
     imdb.roidb_handler = imdb.selective_search_IJCV_roidb
     imdb.config['top_k'] = top_k
     return imdb
+
+# Set up cars_<split> using selective search "fast" mode?
+for split in ['train', 'val', 'test']:
+    name = 'cars_{}'.format(split)
+    __sets[name] = (lambda split=split:
+            datasets.car_ds(split))
 
 # Set up voc_<year>_<split> using selective search "fast" mode
 for year in ['2007', '2012']:

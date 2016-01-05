@@ -33,9 +33,9 @@ NETS = {'vgg16': ('VGG16',
         'zf': ('ZF',
                   'ZF_faster_rcnn_final.caffemodel'),
         'cars': ('cars_VGG16',
-                  'cars_VGG16_faster_rcnn_final.caffemodel')}
+                  'cars_VGG16_faster_rcnn_final_voc2012_train.caffemodel')}
 
-LONG_BINS = 8
+LONG_BINS = 40
 SHORT_BINS = 3
 
 
@@ -71,14 +71,15 @@ def vis_detections(im, class_name, dets, thresh=0.5):
     plt.tight_layout()
     plt.draw()
 
-def split_im(im, wbins, hbins):
+def split_im(im, hbins, wbins):
     height, width, depth = im.shape
-    w = width / wbins
     h = height / hbins
+    w = width / wbins
+    print('Splitting image to tiles of size ' + str((h, w)))
     out = []
-    for i in xrange(wbins):
-        for j in xrange(hbins):
-            out.append(im[ i*h:(i+1)*h, j*w:(j+1)*w, : ])
+    for i in xrange(hbins):
+        for j in xrange(wbins):
+            out.append(np.array(im[ i*h:(i+1)*h, j*w:(j+1)*w, : ]))
     return out
 
 def demo(net, image_name):
@@ -93,7 +94,7 @@ def demo(net, image_name):
         wbins, hbins = SHORT_BINS, LONG_BINS
 
 
-    images = split_im(im, wbins, hbins)
+    images = split_im(im, hbins, wbins)
     for image in images:
         # Detect all object classes and regress object bounds
         timer = Timer()
@@ -114,7 +115,7 @@ def demo(net, image_name):
                               cls_scores[:, np.newaxis])).astype(np.float32)
             keep = nms(dets, NMS_THRESH)
             dets = dets[keep, :]
-            vis_detections(im, cls, dets, thresh=CONF_THRESH)
+            vis_detections(image, cls, dets, thresh=CONF_THRESH)
 
 def parse_args():
     """Parse input arguments."""
@@ -125,7 +126,7 @@ def parse_args():
                         help='Use CPU mode (overrides --gpu)',
                         action='store_true')
     parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16]',
-                        choices=NETS.keys(), default='vgg16')
+                        choices=NETS.keys(), default='cars')
 
     args = parser.parse_args()
 
@@ -160,7 +161,7 @@ if __name__ == '__main__':
     for i in xrange(2):
         _, _= im_detect(net, im)
 
-    im_names = ['OGN001_201114_00107_1000015_VIS_150500_00200_P01OF01.tif']
+    im_names = ['OGN001_201114_00107_1000015_VIS_150500_00200_P01OF01.tif_2']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/{}'.format(im_name)

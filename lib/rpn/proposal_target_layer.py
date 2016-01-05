@@ -41,11 +41,23 @@ class ProposalTargetLayer(caffe.Layer):
         # labels
         top[1].reshape(1, 1)
         # bbox_targets
-        top[2].reshape(1, self._num_classes * 4)
+        if cfg.TRAIN.ALT_CLASSES or cfg.TEST.ALT_CLASSES:
+            top[2].reshape(1, cfg.NUM_CLASSES * 4)
+            # bbox_inside_weights
+            top[3].reshape(1, cfg.NUM_CLASSES * 4)
+            # bbox_outside_weights
+            top[4].reshape(1, cfg.NUM_CLASSES * 4)
+        else:
+            top[2].reshape(1, self._num_classes * 4)
+            # bbox_inside_weights
+            top[3].reshape(1, self._num_classes * 4)
+            # bbox_outside_weights
+            top[4].reshape(1, self._num_classes * 4)
+
         # bbox_inside_weights
-        top[3].reshape(1, self._num_classes * 4)
+#        top[3].reshape(1, self._num_classes * 4)
         # bbox_outside_weights
-        top[4].reshape(1, self._num_classes * 4)
+#        top[4].reshape(1, self._num_classes * 4)
 
     def forward(self, bottom, top):
         # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN

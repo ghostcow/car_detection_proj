@@ -123,6 +123,14 @@ __C.TRAIN.RPN_BBOX_INSIDE_WEIGHTS = (1.0, 1.0, 1.0, 1.0)
 # Set to -1.0 to use uniform example weighting
 __C.TRAIN.RPN_POSITIVE_WEIGHT = -1.0
 
+# Use alternative snapshot function, if net has been altered to change
+# number of classes by adding a FC layer to mediate number of classes.
+__C.TRAIN.ALT_SNAPSHOT = False
+
+# Use alternative number of classes
+# If this is set to True then also __C.NUM_CLASSES must be set
+# to the number of classes.
+__C.TRAIN.ALT_CLASSES = False
 
 #
 # Testing options
@@ -163,6 +171,14 @@ __C.TEST.RPN_POST_NMS_TOP_N = 300
 # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
 __C.TEST.RPN_MIN_SIZE = 16
 
+# Use alternative image detection function, if net has been altered
+# to change number of classes.
+__C.TEST.ALT_IM_DETECT = False
+
+# Use alternative number of classes
+# If this is set to True then also __C.NUM_CLASSES must be set
+# to the number of classes.
+__C.TEST.ALT_CLASSES = False
 
 #
 # MISC
@@ -197,6 +213,9 @@ __C.USE_GPU_NMS = True
 
 # Default GPU device id
 __C.GPU_ID = 0
+
+# Number of classes
+__C.NUM_CLASSES = 21
 
 
 def get_output_dir(imdb, net):

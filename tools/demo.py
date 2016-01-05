@@ -15,7 +15,8 @@ See README.md for installation instructions before running.
 
 import _init_paths
 from fast_rcnn.config import cfg
-from fast_rcnn.test import im_detect
+# from fast_rcnn.test import im_detect
+from fast_rcnn.test import alt_im_detect as im_detect
 from fast_rcnn.nms_wrapper import nms
 from utils.timer import Timer
 import matplotlib.pyplot as plt
@@ -25,16 +26,17 @@ import caffe, os, sys, cv2
 import argparse
 
 CLASSES = ('__background__',
-           'aeroplane', 'bicycle', 'bird', 'boat',
-           'bottle', 'bus', 'car', 'cat', 'chair',
-           'cow', 'diningtable', 'dog', 'horse',
-           'motorbike', 'person', 'pottedplant',
-           'sheep', 'sofa', 'train', 'tvmonitor')
+           'car')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
-                  'ZF_faster_rcnn_final.caffemodel')}
+                  'ZF_faster_rcnn_final.caffemodel'),
+        'cars': ('cars_VGG16',
+                  'cars_VGG16_faster_rcnn_final.caffemodel')}
+
+LONG_BINS = 8
+SHORT_BINS = 3
 
 
 def vis_detections(im, class_name, dets, thresh=0.5):
@@ -69,33 +71,50 @@ def vis_detections(im, class_name, dets, thresh=0.5):
     plt.tight_layout()
     plt.draw()
 
+def split_im(im, wbins, hbins):
+    height, width, depth = im.shape
+    w = width / wbins
+    h = height / hbins
+    out = []
+    for i in xrange(wbins):
+        for j in xrange(hbins):
+            out.append(im[ i*h:(i+1)*h, j*w:(j+1)*w, : ])
+    return out
+
 def demo(net, image_name):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
     im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name)
     im = cv2.imread(im_file)
+    if im.shape[1] > im.shape[0]:
+        wbins, hbins = LONG_BINS, SHORT_BINS
+    else:
+        wbins, hbins = SHORT_BINS, LONG_BINS
 
-    # Detect all object classes and regress object bounds
-    timer = Timer()
-    timer.tic()
-    scores, boxes = im_detect(net, im)
-    timer.toc()
-    print ('Detection took {:.3f}s for '
-           '{:d} object proposals').format(timer.total_time, boxes.shape[0])
 
-    # Visualize detections for each class
-    CONF_THRESH = 0.8
-    NMS_THRESH = 0.3
-    for cls_ind, cls in enumerate(CLASSES[1:]):
-        cls_ind += 1 # because we skipped background
-        cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
-        cls_scores = scores[:, cls_ind]
-        dets = np.hstack((cls_boxes,
-                          cls_scores[:, np.newaxis])).astype(np.float32)
-        keep = nms(dets, NMS_THRESH)
-        dets = dets[keep, :]
-        vis_detections(im, cls, dets, thresh=CONF_THRESH)
+    images = split_im(im, wbins, hbins)
+    for image in images:
+        # Detect all object classes and regress object bounds
+        timer = Timer()
+        timer.tic()
+        scores, boxes = im_detect(net, image)
+        timer.toc()
+        print ('Detection took {:.3f}s for '
+               '{:d} object proposals').format(timer.total_time, boxes.shape[0])
+
+        # Visualize detections for each class
+        CONF_THRESH = 0.8
+        NMS_THRESH = 0.3
+        for cls_ind, cls in enumerate(CLASSES[1:]):
+            cls_ind += 1 # because we skipped background
+            cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind + 1)]
+            cls_scores = scores[:, cls_ind]
+            dets = np.hstack((cls_boxes,
+                              cls_scores[:, np.newaxis])).astype(np.float32)
+            keep = nms(dets, NMS_THRESH)
+            dets = dets[keep, :]
+            vis_detections(im, cls, dets, thresh=CONF_THRESH)
 
 def parse_args():
     """Parse input arguments."""
@@ -118,7 +137,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0],
-                            'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
+                            'faster_rcnn_end2end', 'test.prototxt')
     caffemodel = os.path.join(cfg.ROOT_DIR, 'data', 'faster_rcnn_models',
                               NETS[args.demo_net][1])
 
@@ -141,8 +160,7 @@ if __name__ == '__main__':
     for i in xrange(2):
         _, _= im_detect(net, im)
 
-    im_names = ['000456.jpg', '000542.jpg', '001150.jpg',
-                '001763.jpg', '004545.jpg']
+    im_names = ['OGN001_201114_00107_1000015_VIS_150500_00200_P01OF01.tif']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/{}'.format(im_name)

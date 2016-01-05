@@ -23,7 +23,7 @@ def _selective_search_IJCV_top_k(split, year, top_k):
     return imdb
 
 # Set up cars_<split> using selective search "fast" mode?
-for split in ['train', 'val', 'test']:
+for split in ['train', 'val', 'test', 'trainvaltest']:
     name = 'cars_{}'.format(split)
     __sets[name] = (lambda split=split:
             datasets.car_ds(split))

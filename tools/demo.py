@@ -164,6 +164,7 @@ if __name__ == '__main__':
         _, _= im_detect(net, im)
 
     im_names = ['OGN001_201114_00107_1000015_VIS_150500_00200_P01OF01.tif_2']
+    #im_names = ['OGN001_260614_00000_0000000_VIS_11073850_00004_00047_P01OF01.tiff']
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for data/demo/{}'.format(im_name)

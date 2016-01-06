@@ -36,10 +36,10 @@ NETS = {'vgg16': ('VGG16',
                   'cars_VGG16_faster_rcnn_final_voc2012_train.caffemodel')}
 
 LONG_BINS = 40
-SHORT_BINS = 3
+SHORT_BINS = 4
 
 
-def vis_detections(im, class_name, dets, thresh=0.5):
+def vis_detections(im, class_name, dets, thresh=0.5, idx=0):
     """Draw detected bounding boxes."""
     inds = np.where(dets[:, -1] >= thresh)[0]
     if len(inds) == 0:
@@ -70,6 +70,8 @@ def vis_detections(im, class_name, dets, thresh=0.5):
     plt.axis('off')
     plt.tight_layout()
     plt.draw()
+    plt.show()
+    #plt.savefig(os.path.join(cfg.ROOT_DIR, 'data', 'demo', str(idx) + '.png'))
 
 def split_im(im, hbins, wbins):
     height, width, depth = im.shape
@@ -77,8 +79,9 @@ def split_im(im, hbins, wbins):
     w = width / wbins
     print('Splitting image to tiles of size ' + str((h, w)))
     out = []
-    for i in xrange(hbins):
-        for j in xrange(wbins):
+
+    for j in xrange(wbins):
+        for i in xrange(hbins):
             out.append(np.array(im[ i*h:(i+1)*h, j*w:(j+1)*w, : ]))
     return out
 
@@ -93,13 +96,12 @@ def demo(net, image_name):
     else:
         wbins, hbins = SHORT_BINS, LONG_BINS
 
-
     images = split_im(im, hbins, wbins)
-    for image in images:
+    for c in xrange(len(images)):
         # Detect all object classes and regress object bounds
         timer = Timer()
         timer.tic()
-        scores, boxes = im_detect(net, image)
+        scores, boxes = im_detect(net, images[c])
         timer.toc()
         print ('Detection took {:.3f}s for '
                '{:d} object proposals').format(timer.total_time, boxes.shape[0])
@@ -115,7 +117,7 @@ def demo(net, image_name):
                               cls_scores[:, np.newaxis])).astype(np.float32)
             keep = nms(dets, NMS_THRESH)
             dets = dets[keep, :]
-            vis_detections(image, cls, dets, thresh=CONF_THRESH)
+            vis_detections(images[c], cls, dets, thresh=CONF_THRESH, idx=c)
 
 def parse_args():
     """Parse input arguments."""
@@ -167,4 +169,4 @@ if __name__ == '__main__':
         print 'Demo for data/demo/{}'.format(im_name)
         demo(net, im_name)
 
-    plt.show()
+    #plt.show()

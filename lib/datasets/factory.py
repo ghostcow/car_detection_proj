@@ -9,15 +9,15 @@
 
 __sets = {}
 
-import datasets.pascal_voc
-import datasets.car_ds
+from datasets.pascal_voc import pascal_voc
+from datasets.car_ds import car_ds
 import numpy as np
 
 def _selective_search_IJCV_top_k(split, year, top_k):
     """Return an imdb that uses the top k proposals from the selective search
     IJCV code.
     """
-    imdb = datasets.pascal_voc(split, year)
+    imdb = pascal_voc(split, year)
     imdb.roidb_handler = imdb.selective_search_IJCV_roidb
     imdb.config['top_k'] = top_k
     return imdb
@@ -25,15 +25,14 @@ def _selective_search_IJCV_top_k(split, year, top_k):
 # Set up cars_<split> using selective search "fast" mode?
 for split in ['train', 'val', 'test', 'trainvaltest']:
     name = 'cars_{}'.format(split)
-    __sets[name] = (lambda split=split:
-            datasets.car_ds(split))
+    __sets[name] = (lambda split=split: car_ds(split))
 
 # Set up voc_<year>_<split> using selective search "fast" mode
 for year in ['2007', '2012']:
     for split in ['train', 'val', 'trainval', 'test']:
         name = 'voc_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year:
-                datasets.pascal_voc(split, year))
+                pascal_voc(split, year))
 
 # Set up voc_<year>_<split>_top_<k> using selective search "quality" mode
 # but only returning the first k boxes

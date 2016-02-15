@@ -40,6 +40,10 @@ def cap_detections_at_100(dt):
         dt[j] = dets[idx]
     return dt
 
+def get_average_recall(ious, iou_thresholds):
+    recalls = get_recall_thresholds(ious, iou_thresholds)
+    pass
+
 def get_mean_accuracy(ious, iou_thres, recall_thres):
 
     accuracy = []
@@ -61,6 +65,11 @@ def _get_accuracy(ious, iou_thres=0.5, score_thres=0.5):
     accuracy = np.sum(np.dot(z, s)) / np.sum(s)
     return accuracy
 
+def _get_recall(ious, N, iou_thres=0.5, score_thres=0.5):
+    z, s = _get_z_s(ious, iou_thres, score_thres)
+    recall = np.sum(np.dot(s,z)) / N
+    return recall
+
 def get_recall_thresholds(ious, iou_thresholds):
     return [_get_recall_threshold(ious, it) for it in iou_thresholds]
 
@@ -71,14 +80,17 @@ def _get_recall_threshold(ious, iou_thres):
     score_thresholds = _get_score_thresholds(ious)
     N = sum([_iou.shape[1] - 1 for _iou in ious])
     thresholds = []
+    recalls = []
     prev_recall = -1
     for score_thres in reversed(score_thresholds):
-        z, s = _get_z_s(ious, iou_thres=iou_thres, score_thres=score_thres)
-        recall = np.sum(np.dot(z, s)) / N
+        #z, s = _get_z_s(ious, iou_thres=iou_thres, score_thres=score_thres)
+        #recall = np.sum(np.dot(z, s)) / N
+        recall = _get_recall(ious, N, iou_thres=iou_thres, score_thres=score_thres)
         if recall > prev_recall:
+            recalls.insert(0, recall)
             thresholds.insert(0, score_thres)
             prev_recall = recall
-    return thresholds
+    return thresholds, recalls
 
 def _get_score_thresholds(ious):
     """

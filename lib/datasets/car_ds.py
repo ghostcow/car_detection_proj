@@ -259,9 +259,10 @@ class car_ds(datasets.imdb):
         iou_thres = [0.50]
         t0 = time.time()
         ious = [get_ious(_gt, _dt) for _gt, _dt in zip(gt, dt) if _dt.shape[0] != 0]
-        recall_thres = get_recall_thresholds(ious, iou_thres)
+        recall_thres, recalls = zip(*get_recall_thresholds(ious, iou_thres))
         mean_accuracy = get_mean_accuracy(ious, iou_thres, recall_thres)
-        results = 'mAP={:.02f} at IoU thresholds {}, in time {:.02f}'.format(mean_accuracy * 100, iou_thres, time.time()-t0)
+        average_recall = np.mean(np.array(recalls))
+        results = 'mAP={:.02f}, recall={} at IoU thresholds {}, in time {:.02f}'.format(mean_accuracy * 100, average_recall * 100, iou_thres, time.time()-t0)
 
         with open(os.path.join(output_dir, 'results1.log'), 'w') as f:
             f.write(results + '\n')
@@ -270,9 +271,10 @@ class car_ds(datasets.imdb):
         iou_thres = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
         t0 = time.time()
         ious = [get_ious(_gt, _dt) for _gt, _dt in zip(gt, dt) if _dt.shape[0] != 0]
-        recall_thres = get_recall_thresholds(ious, iou_thres)
+        recall_thres, recalls = zip(*get_recall_thresholds(ious, iou_thres))
         mean_accuracy = get_mean_accuracy(ious, iou_thres, recall_thres)
-        results = 'mAP={:.02f} at IoU thresholds {}, in time {:.02f}'.format(mean_accuracy * 100, iou_thres, time.time()-t0)
+        average_recall = np.mean(np.array(recalls))
+        results = 'mAP={:.02f} at IoU thresholds {}, in time {:.02f}'.format(mean_accuracy * 100, average_recall * 100, iou_thres, time.time()-t0)
 
         with open(os.path.join(output_dir, 'results2.log'), 'w') as f:
             f.write(results + '\n')

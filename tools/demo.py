@@ -89,7 +89,7 @@ def demo(net, image_name):
     """Detect object classes in an image using pre-computed object proposals."""
 
     # Load the demo image
-    im_file = os.path.join(cfg.ROOT_DIR, 'data', 'demo', image_name)
+    im_file = os.path.join(cfg.DATA_DIR, 'demo', image_name)
     im = cv2.imread(im_file)
     if im.shape[1] > im.shape[0]:
         wbins, hbins = LONG_BINS, SHORT_BINS
@@ -139,9 +139,15 @@ if __name__ == '__main__':
 
     args = parse_args()
 
+<<<<<<< HEAD
     prototxt = os.path.join(cfg.ROOT_DIR, 'models', NETS[args.demo_net][0],
                             'faster_rcnn_end2end', 'test.prototxt')
     caffemodel = os.path.join(cfg.ROOT_DIR, 'data', 'faster_rcnn_models',
+=======
+    prototxt = os.path.join(cfg.MODELS_DIR, NETS[args.demo_net][0],
+                            'faster_rcnn_alt_opt', 'faster_rcnn_test.pt')
+    caffemodel = os.path.join(cfg.DATA_DIR, 'faster_rcnn_models',
+>>>>>>> upstream/master
                               NETS[args.demo_net][1])
 
     if not os.path.isfile(caffemodel):

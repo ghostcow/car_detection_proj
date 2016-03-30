@@ -10,28 +10,27 @@ from datasets.imdb import imdb
 #import datasets.ds_utils as ds_utils
 import numpy as np
 import scipy.sparse
-import utils.cython_bbox
+#import utils.cython_bbox
 import cPickle
 import uuid
 from voc_eval import voc_eval
 from fast_rcnn.config import cfg
 
 class vehicles(imdb):
-    def __init__(self, image_set, year, devkit_path=None):
-        imdb.__init__(self, 'voc_' + year + '_' + image_set)
-        self._year = year
+    def __init__(self, image_set, version, dataset_path=None):
+        imdb.__init__(self, 'vehicles_dataset_v{}_{}'.format(version, image_set))
+        self.name = 'vehicles_dataset_v{}_{}'.format(version, image_set)
+        self._version = version
         self._image_set = image_set
-        self._devkit_path = self._get_default_path() if devkit_path is None \
-                            else devkit_path
-        self._data_path = os.path.join(self._devkit_path, 'VOC' + self._year)
+        self._dataset_path = self._get_default_path() if dataset_path is None \
+                            else dataset_path
+        self._annotation_path = os.path.join(self._dataset_path, 'annotations')
+        self._image_path = os.path.join(self._dataset_path, 'images')
+        self._raw_annotations = None
         self._classes = ('__background__', # always index 0
-                         'aeroplane', 'bicycle', 'bird', 'boat',
-                         'bottle', 'bus', 'car', 'cat', 'chair',
-                         'cow', 'diningtable', 'dog', 'horse',
-                         'motorbike', 'person', 'pottedplant',
-                         'sheep', 'sofa', 'train', 'tvmonitor')
+                         'car', 'van', 'truck',
+                         'concretetruck', 'bus')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
         self._roidb_handler = self.selective_search_roidb
@@ -46,10 +45,12 @@ class vehicles(imdb):
                        'rpn_file'    : None,
                        'min_size'    : 2}
 
-        assert os.path.exists(self._devkit_path), \
-                'VOCdevkit path does not exist: {}'.format(self._devkit_path)
-        assert os.path.exists(self._data_path), \
-                'Path does not exist: {}'.format(self._data_path)
+        assert os.path.exists(self._dataset_path), \
+                'Dataset path does not exist: {}'.format(self._dataset_path)
+        assert os.path.exists(self._annotation_path), \
+                'Path does not exist: {}'.format(self._annotation_path)
+        assert os.path.exists(self._image_path), \
+                'Path does not exist: {}'.format(self._image_path)
 
     def image_path_at(self, i):
         """
@@ -60,9 +61,9 @@ class vehicles(imdb):
     def image_path_from_index(self, index):
         """
         Construct an image path from the image's "index" identifier.
+        The "index" identifier is just the name of the image.
         """
-        image_path = os.path.join(self._data_path, 'JPEGImages',
-                                  index + self._image_ext)
+        image_path = os.path.join(self._image_path, index)
         assert os.path.exists(image_path), \
                 'Path does not exist: {}'.format(image_path)
         return image_path
@@ -71,21 +72,14 @@ class vehicles(imdb):
         """
         Load the indexes listed in this dataset's image set file.
         """
-        # Example path to image set file:
-        # self._devkit_path + /VOCdevkit2007/VOC2007/ImageSets/Main/val.txt
-        image_set_file = os.path.join(self._data_path, 'ImageSets', 'Main',
-                                      self._image_set + '.txt')
-        assert os.path.exists(image_set_file), \
-                'Path does not exist: {}'.format(image_set_file)
-        with open(image_set_file) as f:
-            image_index = [x.strip() for x in f.readlines()]
+        image_index = self._load_annotations().keys()
         return image_index
 
     def _get_default_path(self):
         """
-        Return the default path where PASCAL VOC is expected to be installed.
+        Get root of dataset directory
         """
-        return os.path.join(cfg.DATA_DIR, 'VOCdevkit' + self._year)
+        return os.path.join(cfg.DATA_DIR, 'vehicles_dataset_v{}'.format(self._version))
 
     def gt_roidb(self):
         """
@@ -100,12 +94,44 @@ class vehicles(imdb):
             print '{} gt roidb loaded from {}'.format(self.name, cache_file)
             return roidb
 
-        gt_roidb = self._load_annotations()
+        raw_annotations = self._load_annotations()
+        gt_roidb = self._format_raw_annotations(raw_annotations)
         with open(cache_file, 'wb') as fid:
             cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
         print 'wrote gt roidb to {}'.format(cache_file)
 
         return gt_roidb
+
+    # def proposal_roidb(self):
+    #     """
+    #     Return the database of regions of interest.
+    #     Ground-truth ROIs are also included.
+
+    #     This function loads/saves from/to a cache file to speed up future calls.
+    #     """
+    #     cache_file = os.path.join(self.cache_path,
+    #                               self.name + '_proposal_roidb.pkl')
+
+    #     if os.path.exists(cache_file):
+    #         with open(cache_file, 'rb') as fid:
+    #             roidb = cPickle.load(fid)
+    #         print '{} roidb loaded from {}'.format(self.name, cache_file)
+    #         return roidb
+
+    #     if self._image_set != 'test':
+    #         gt_roidb = self.gt_roidb()
+    #         ss_roidb = self._load_proposal_roidb(gt_roidb)
+    #         roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
+    #     else:
+    #         roidb = self._load_proposal_roidb(None)
+    #     with open(cache_file, 'wb') as fid:
+    #         cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
+    #     print 'wrote roidb to {}'.format(cache_file)
+
+    #     return roidb
+
+    # def _load_proposal_roidb(self):
+    #     raise NotImplementedError
 
     def rpn_roidb(self):
         if self._image_set != 'test':
@@ -127,6 +153,12 @@ class vehicles(imdb):
         return self.create_roidb_from_box_list(box_list, gt_roidb)
 
     def _load_annotations(self):
+        """
+        Getter and setterof the unprocessed annotations of vehicles dataset.
+        """
+        if self._raw_annotations is not None:
+            return self._raw_annotations
+
         dataset_file = os.path.join(self._annotation_path, 'complete_dataset_v{}.pkl'.format(self._version))
         idx_file = os.path.join(self._annotation_path, 'splits_indices_v{}.pkl'.format(self._version))
 
@@ -142,9 +174,9 @@ class vehicles(imdb):
             indices = cPickle.load(fid)[self._image_set]
         with open(dataset_file, 'rb') as fid:
             ds = cPickle.load(fid)
-            raw_annotations = get_split_from_ds(ds, indices)
+            self._raw_annotations = get_split_from_ds(ds, indices)
 
-        return self._format_annotations(raw_annotations)
+        return self._raw_annotations
 
     def _format_raw_annotations(self, raw_annotations):
         annotations = {}
@@ -161,7 +193,8 @@ class vehicles(imdb):
         seg_areas = np.zeros((num_objs), dtype=np.float32)
 
         boxes[:] = annotation['boxes']
-        gt_classes[:] = np.array([self._class_to_ind[cls] for cls in annotation['gt_classes']])
+        gt_classes[:] = np.array([self._class_to_ind[cls.lower()]
+                                  for cls in annotation['gt_classes']])
         for ix, cls in enumerate(gt_classes):
             overlaps[ix, cls] = 1.0
             x1, y1, x2, y2 = boxes[ix]
@@ -201,17 +234,17 @@ class vehicles(imdb):
         TODO: HOW TO USE THIS SCHNOZZ TO EVALUATE RESULTS
         """
         annopath = os.path.join(
-            self._devkit_path,
+            self._dataset_path,
             'VOC' + self._year,
             'Annotations',
             '{:s}.xml')
         imagesetfile = os.path.join(
-            self._devkit_path,
+            self._dataset_path,
             'VOC' + self._year,
             'ImageSets',
             'Main',
             self._image_set + '.txt')
-        cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+        cachedir = os.path.join(self._dataset_path, 'annotations_cache')
         aps = []
         # The PASCAL VOC metric changed in 2010
         use_07_metric = True if int(self._year) < 2010 else False
@@ -252,7 +285,6 @@ class vehicles(imdb):
         self._do_python_eval(output_dir)
 
 if __name__ == '__main__':
-    from datasets.vehicles import vehicles
     d = vehicles('trainval', '2007')
     res = d.roidb
     from IPython import embed; embed()

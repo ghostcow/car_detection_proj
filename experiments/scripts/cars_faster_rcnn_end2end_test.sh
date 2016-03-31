@@ -26,7 +26,7 @@ LOG="experiments/logs/faster_rcnn_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
-NET_FINAL='data/faster_rcnn_models/cars_VGG16_faster_rcnn_final_voc2012_train.caffemodel'
+NET_FINAL='data/faster_rcnn_models/cars/VGG16_faster_rcnn_final_voc2012_train.caffemodel'
 
 time ./tools/test_net.py --gpu ${GPU_ID} \
   --def models/${NET}/faster_rcnn_end2end/test.prototxt \

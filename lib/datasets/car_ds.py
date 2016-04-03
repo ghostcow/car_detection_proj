@@ -8,7 +8,7 @@
 import datasets
 import datasets.car_ds
 import os
-import datasets.imdb
+from datasets.imdb import imdb
 import xml.dom.minidom as minidom
 import numpy as np
 import scipy.sparse
@@ -18,9 +18,9 @@ from utils.eval import *
 import cPickle
 import subprocess
 
-class car_ds(datasets.imdb):
+class car_ds(imdb):
     def __init__(self, image_set, devkit_path=None):
-        datasets.imdb.__init__(self, 'cars_' + image_set)
+        imdb.__init__(self, 'cars_' + image_set)
         self._image_set = image_set
         self._devkit_path = self._get_default_path() if devkit_path is None \
                             else devkit_path

@@ -19,7 +19,6 @@ from fast_rcnn.config import cfg
 class vehicles(imdb):
     def __init__(self, image_set, version, dataset_path=None):
         imdb.__init__(self, 'vehicles_dataset_v{}_{}'.format(version, image_set))
-        self.name = 'vehicles_dataset_v{}_{}'.format(version, image_set)
         self._version = version
         self._image_set = image_set
         self._dataset_path = self._get_default_path() if dataset_path is None \
@@ -33,7 +32,7 @@ class vehicles(imdb):
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
-        self._roidb_handler = self.selective_search_roidb
+        # self._roidb_handler = self.selective_search_roidb
         self._salt = str(uuid.uuid4())
         self._comp_id = 'comp4'
 
@@ -56,14 +55,7 @@ class vehicles(imdb):
         """
         Return the absolute path to image i in the image sequence.
         """
-        return self.image_path_from_index(self._image_index[i])
-
-    def image_path_from_index(self, index):
-        """
-        Construct an image path from the image's "index" identifier.
-        The "index" identifier is just the name of the image.
-        """
-        image_path = os.path.join(self._image_path, index)
+        image_path = os.path.join(self._image_path, self._image_index[i])
         assert os.path.exists(image_path), \
                 'Path does not exist: {}'.format(image_path)
         return image_path
@@ -101,37 +93,6 @@ class vehicles(imdb):
         print 'wrote gt roidb to {}'.format(cache_file)
 
         return gt_roidb
-
-    # def proposal_roidb(self):
-    #     """
-    #     Return the database of regions of interest.
-    #     Ground-truth ROIs are also included.
-
-    #     This function loads/saves from/to a cache file to speed up future calls.
-    #     """
-    #     cache_file = os.path.join(self.cache_path,
-    #                               self.name + '_proposal_roidb.pkl')
-
-    #     if os.path.exists(cache_file):
-    #         with open(cache_file, 'rb') as fid:
-    #             roidb = cPickle.load(fid)
-    #         print '{} roidb loaded from {}'.format(self.name, cache_file)
-    #         return roidb
-
-    #     if self._image_set != 'test':
-    #         gt_roidb = self.gt_roidb()
-    #         ss_roidb = self._load_proposal_roidb(gt_roidb)
-    #         roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
-    #     else:
-    #         roidb = self._load_proposal_roidb(None)
-    #     with open(cache_file, 'wb') as fid:
-    #         cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
-    #     print 'wrote roidb to {}'.format(cache_file)
-
-    #     return roidb
-
-    # def _load_proposal_roidb(self):
-    #     raise NotImplementedError
 
     def rpn_roidb(self):
         if self._image_set != 'test':
@@ -179,9 +140,10 @@ class vehicles(imdb):
         return self._raw_annotations
 
     def _format_raw_annotations(self, raw_annotations):
-        annotations = {}
-        for key, anno in raw_annotations.iteritems():
-            annotations[key] = self._format_raw_annotation(anno)
+        annotations = []
+        for j in xrange(self.num_images):
+            anno = raw_annotations[self._image_index[j]]
+            annotations.append(self._format_raw_annotation(anno))
         return annotations
 
     def _format_raw_annotation(self, annotation):

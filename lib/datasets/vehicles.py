@@ -7,14 +7,13 @@
 
 import os
 from datasets.imdb import imdb
-#import datasets.ds_utils as ds_utils
 import numpy as np
 import scipy.sparse
-#import utils.cython_bbox
 import cPickle
 import uuid
 from eval import eval
 from fast_rcnn.config import cfg
+import matplotlib.pyplot as plt
 
 class vehicles(imdb):
     def __init__(self, image_set, version, dataset_path=None):
@@ -184,6 +183,19 @@ class vehicles(imdb):
             filename)
         return path
 
+    def _save_plots(self, output_fname, cls, rec, prec, sorted_scores):
+        plt.clf()
+        plt.title(cls)
+        plt.plot(-sorted_scores, prec, 'g', label='precision')
+        plt.plot(-sorted_scores, rec, 'r', label='recall')
+        plt.ylabel('% precision / recall')
+        plt.xlabel('score')
+        ax = plt.gca()
+        ax.set_yticks(np.arange(0,1.1,0.1))
+        ax.invert_xaxis()
+        plt.savefig(output_fname)
+        return
+
     def _write_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
             if cls == '__background__':
@@ -213,12 +225,15 @@ class vehicles(imdb):
             if cls == '__background__':
                 continue
             filename = self._get_results_file_template().format(cls)
-            rec, prec, ap = eval(
+            rec, prec, ap, sorted_scores = eval(
                 filename, annotations, imagenames, cls, cachedir, ovthresh=0.5)
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
             with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
-                cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
+                cPickle.dump({'rec': rec, 'prec': prec,
+                              'ap': ap, 'scores': sorted_scores}, f)
+            self._save_plots(os.path.join(output_dir, cls + '.png'),
+                             cls, rec, prec, sorted_scores)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
         print('~~~~~~~~')
         print('Results:')
@@ -226,13 +241,6 @@ class vehicles(imdb):
             print('{:.3f}'.format(ap))
         print('{:.3f}'.format(np.mean(aps)))
         print('~~~~~~~~')
-        print('')
-        print('--------------------------------------------------------------')
-        print('Results computed with the **unofficial** Python eval code.')
-        print('Results should be very close to the official MATLAB eval code.')
-        print('Recompute with `./tools/reval.py --matlab ...` for your paper.')
-        print('-- Thanks, The Management')
-        print('--------------------------------------------------------------')
 
     def evaluate_detections(self, all_boxes, output_dir):
         self._write_results_file(all_boxes)

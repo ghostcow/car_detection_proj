@@ -131,7 +131,7 @@ def eval(detpath,
 
     # sort by confidence
     sorted_ind = np.argsort(-confidence)
-    #sorted_scores = np.sort(-confidence)
+    sorted_scores = np.sort(-confidence)
     BB = BB[sorted_ind, :]
     image_ids = [image_ids[x] for x in sorted_ind]
 
@@ -184,5 +184,5 @@ def eval(detpath,
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     ap = voc_ap(rec, prec, use_07_metric)
 
-    return rec, prec, ap
+    return rec, prec, ap, sorted_scores
 

@@ -170,12 +170,17 @@ class vehicles(imdb):
                 'flipped' : False,
                 'seg_areas' : seg_areas}
 
+    def _get_results_dir(self):
+        results_dir = os.path.join(self._dataset_path, "results")
+        if not os.path.isdir(results_dir):
+            os.mkdir(results_dir)
+        return results_dir
+
     def _get_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
-        filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
+        filename = 'det_' + self._image_set + '_{:s}.txt'
         path = os.path.join(
-            self._dataset_path,
-            'results',
+            self._get_results_dir(),
             filename)
         return path
 

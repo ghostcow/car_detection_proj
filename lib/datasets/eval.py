@@ -13,7 +13,7 @@ def parse_rec(anno):
     objects = []
     for ix, cls in enumerate(anno['gt_classes']):
         obj = {}
-        obj['name'] = cls
+        obj['name'] = cls.lower()
         obj['difficult'] = False
         obj['bbox'] = anno['boxes'][ix]
         objects.append(obj)
@@ -52,7 +52,7 @@ def voc_ap(rec, prec, use_07_metric=False):
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-def voc_eval(detpath,
+def eval(detpath,
              annotations,
              imagenames,
              classname,

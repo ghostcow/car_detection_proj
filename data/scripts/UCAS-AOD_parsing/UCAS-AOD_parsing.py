@@ -9,6 +9,19 @@ NEG = osp.join(DATA,'Neg')
 PLANE = osp.join(DATA,'PLANE')
 CARS = osp.join(DATA,'CAR')
 
+def xyhw_to_x1y1x2y2(boxes):
+    xctr,yctr,width,height = boxes.T
+    xctr = xctr[:,np.newaxis]
+    yctr = yctr[:,np.newaxis]
+    width = width[:,np.newaxis]
+    height = height[:,np.newaxis]
+
+    x1 = xctr - width*0.5
+    y1 = yctr - height*0.5
+    x2 = x1 + width
+    y2 = y1 + height
+    return np.concatenate(( x1,y1,x2,y2 ),axis=1)
+
 def make_chinese_car_db():
     ## load car annotations
     files=os.listdir(CARS)
@@ -20,8 +33,8 @@ def make_chinese_car_db():
     for idx,txtfile in enumerate(txts):
         with open(osp.join(CARS,txtfile)) as f:
             txt = f.readlines()
-        raw_arr = [line.split('\t')[-5:-1] for line in txt]
-        anno = np.array(raw_arr,dtype=np.float32)
+        raw_arr = np.array([line.split('\t')[-5:-1] for line in txt],dtype=np.float32)
+        anno = xyhw_to_x1y1x2y2(raw_arr)
         gt_classes = ['Car' for row in anno]
 
         name = pngs[idx]

@@ -17,8 +17,13 @@ import numpy as np
 
 # Set up vehicles dataset version 2 <split>
 for split in ['train', 'val', 'test']:
-    name = 'vehicles_dataset_v2_{}'.format(split)
-    __sets[name] = (lambda split=split: vehicles(split, 2))
+    name = 'vehicles_dataset_v3_{}'.format(split)
+    __sets[name] = (lambda split=split: vehicles(split, 3))
+
+# Set up vehicles dataset version 2 <split>
+# for split in ['train', 'val', 'test']:
+#     name = 'vehicles_dataset_v2_{}'.format(split)
+#     __sets[name] = (lambda split=split: vehicles(split, 2))
 
 # Set up cars_<split>
 for split in ['train', 'val', 'test', 'trainvaltest']:

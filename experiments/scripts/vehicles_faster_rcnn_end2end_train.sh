@@ -26,6 +26,7 @@ TRAIN_IMDB="vehicles_dataset_v2_train"
 PT_DIR="vehicles_dataset"
 ITERS=35000
 NET_INIT=output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel
+# NET_INIT="output/faster_rcnn_end2end/vehicles_dataset_v2_train/vgg16_faster_rcnn_iter_35000.caffemodel"
 # case $DATASET in
 #   pascal_voc)
 #     TRAIN_IMDB="voc_2007_trainval"
@@ -66,9 +67,9 @@ set +x
 NET_FINAL=`grep -B 1 "done solving" ${LOG} | grep "Wrote snapshot" | awk '{print $4}'`
 set -x
 
-# time ./tools/test_net.py --gpu ${GPU_ID} \
-#   --def models/${PT_DIR}/${NET}/faster_rcnn_end2end/test.prototxt \
-#   --net ${NET_FINAL} \
-#   --imdb ${TEST_IMDB} \
-#   --cfg experiments/cfgs/faster_rcnn_end2end.yml \
-#   ${EXTRA_ARGS}
+time ./tools/test_net.py --gpu ${GPU_ID} \
+  --def models/${PT_DIR}/${NET}/faster_rcnn_end2end/test.prototxt \
+  --net ${NET_FINAL} \
+  --imdb ${TEST_IMDB} \
+  --cfg experiments/cfgs/vehicles_faster_rcnn_end2end.yml \
+  ${EXTRA_ARGS}

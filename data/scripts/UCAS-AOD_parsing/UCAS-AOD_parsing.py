@@ -62,9 +62,9 @@ def main():
     new_full.update(new_cars)
 
     # update split indices
-    _full = full.keys()
-    _new_full = new_full.keys()
     old2new = {}
+    _full     = sorted(full.keys())
+    _new_full = sorted(new_full.keys())
     for idx,name in enumerate(_full):
         new_idx = _new_full.index(name)
         old2new[idx]=new_idx
@@ -72,6 +72,8 @@ def main():
     for k,v in splits.iteritems():
         for i,idx in enumerate(v):
             v[i]=old2new[idx]
+
+    # from IPython import embed; embed()
 
     # update train split with new indices
     _new_cars = np.array([new_full.keys().index(o) for o in new_cars.keys()])

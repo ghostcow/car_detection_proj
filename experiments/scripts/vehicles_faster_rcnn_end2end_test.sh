@@ -27,7 +27,7 @@ exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
 
 set +x
-NET_FINAL='/home/lioruzan/car_detection_proj/output/faster_rcnn_end2end/vehicles_dataset_v2_train/vgg16_faster_rcnn_iter_35000.caffemodel'
+NET_FINAL='/home/lioruzan/car_detection_proj/output/faster_rcnn_end2end/vehicles_dataset_v3_train/vgg16_faster_rcnn_iter_35000.caffemodel'
 set -x
 
 time ./tools/test_net.py --gpu ${GPU_ID} \

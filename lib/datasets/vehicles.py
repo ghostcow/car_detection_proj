@@ -124,7 +124,7 @@ class vehicles(imdb):
 
         def get_split_from_ds(ds, idx):
             split = {}
-            keys = ds.keys()
+            keys = sorted(ds.keys())
             for j in xrange(len(idx)):
                 k = keys[idx[j]]
                 split[k] = ds[k]

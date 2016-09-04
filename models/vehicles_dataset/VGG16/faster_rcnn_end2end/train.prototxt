@@ -527,7 +527,7 @@ layer {
   python_param {
     module: 'rpn.proposal_target_layer'
     layer: 'ProposalTargetLayer'
-    param_str: "'num_classes': 21"
+    param_str: "'num_classes': 6"
   }
 }
 
@@ -617,29 +617,6 @@ layer {
     lr_mult: 2
   }
   inner_product_param {
-    num_output: 21
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  name: "cls_score2"
-  type: "InnerProduct"
-  bottom: "cls_score"
-  top: "cls_score2"
-  param {
-    lr_mult: 1
-  }
-  param {
-    lr_mult: 2
-  }
-  inner_product_param {
     num_output: 6
     weight_filler {
       type: "gaussian"
@@ -663,29 +640,6 @@ layer {
     lr_mult: 2
   }
   inner_product_param {
-    num_output: 84
-    weight_filler {
-      type: "gaussian"
-      std: 0.001
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  name: "bbox_pred2"
-  type: "InnerProduct"
-  bottom: "bbox_pred"
-  top: "bbox_pred2"
-  param {
-    lr_mult: 1
-  }
-  param {
-    lr_mult: 2
-  }
-  inner_product_param {
     num_output: 24
     weight_filler {
       type: "gaussian"
@@ -700,7 +654,7 @@ layer {
 layer {
   name: "loss_cls"
   type: "SoftmaxWithLoss"
-  bottom: "cls_score2"
+  bottom: "cls_score"
   bottom: "labels"
   propagate_down: 1
   propagate_down: 0
@@ -710,7 +664,7 @@ layer {
 layer {
   name: "loss_bbox"
   type: "SmoothL1Loss"
-  bottom: "bbox_pred2"
+  bottom: "bbox_pred"
   bottom: "bbox_targets"
   bottom: "bbox_inside_weights"
   bottom: "bbox_outside_weights"

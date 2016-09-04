@@ -19,7 +19,7 @@ NET_lc=${NET,,}
 array=( $@ )
 len=${#array[@]}
 
-TEST_IMDB="vehicles_dataset_v2_test"
+TEST_IMDB="vehicles_dataset_v3_val"
 PT_DIR="vehicles_dataset"
 
 LOG="experiments/logs/faster_rcnn_end2end_${NET}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"

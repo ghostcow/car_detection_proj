@@ -22,11 +22,12 @@ len=${#array[@]}
 # EXTRA_ARGS=${array[@]:3:$len}
 # EXTRA_ARGS_SLUG=${EXTRA_ARGS// /_}
 
-TRAIN_IMDB="vehicles_dataset_v2_train"
+TRAIN_IMDB="vehicles_dataset_v3_train"
+TEST_IMDB="vehicles_dataset_v3_test"
 PT_DIR="vehicles_dataset"
 ITERS=35000
-NET_INIT=output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel
-# NET_INIT="output/faster_rcnn_end2end/vehicles_dataset_v2_train/vgg16_faster_rcnn_iter_35000.caffemodel"
+# NET_INIT=output/faster_rcnn_end2end/voc_2007_trainval/vgg16_faster_rcnn_iter_70000.caffemodel
+NET_INIT="output/faster_rcnn_end2end/vehicles_dataset_v2_train/vgg16_faster_rcnn_iter_35000.caffemodel"
 # case $DATASET in
 #   pascal_voc)
 #     TRAIN_IMDB="voc_2007_trainval"
